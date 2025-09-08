@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Credit Card Fraud Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Credit Card Fraud Detection</h1>
+        <form method="POST">
+            <label>Biometric Verification :</label><br>
+            <input type="number" name="biometric"><br><br>
+            <label>Transaction Amount:</label><br>
+            <input type="number" name="amount" required><br><br>
+            <label>Foreign Transaction :</label><br>
+            <input type="number" name="foreign"><br><br>
+            <button type="submit">Check Transaction</button>
+        </form>
+        <h2>{{ result }}</h2>
+    </div>
+
+    <footer>
+        Developed by G.Jahnavi & P.Varshitha
+    </footer>
+</body>
+</html>
