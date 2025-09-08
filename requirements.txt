@@ -1,5 +1,6 @@
 Flask
-gunicorn
 pandas
 numpy
-
+scikit-learn
+gunicorn
+# any other libraries you use
