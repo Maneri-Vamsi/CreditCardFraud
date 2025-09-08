@@ -3,7 +3,7 @@ import os, base64
 
 app = Flask(__name__)
 
-# Temporary in-memory storage (replace with DB for production)
+# Temporary storage (replace with DB in production)
 users = {}
 
 # Serve home page
