@@ -11,15 +11,14 @@ from sklearn.model_selection import train_test_split
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET', 'dev_secret_key')
 
-# Config
-PREDEFINED_OTP = os.environ.get('PREDEFINED_OTP', '336333')  # still same variable, now treated as PIN
+# ---------- Config ----------
+PREDEFINED_OTP = os.environ.get('PREDEFINED_OTP', '336333')  # treated as PIN
 DATA_PATH = os.environ.get('DATA_PATH', '/mnt/data/synthetic_fraud_dataset_balanced.csv')
 FALLBACK_AMOUNT_THRESHOLD = float(os.environ.get('FALLBACK_AMOUNT_THRESHOLD', '10000'))
 
 # ---------- CSS ----------
 STYLE = """
 <style>
-/* same CSS */
 body, html {
     margin: 0;
     padding: 0;
@@ -130,12 +129,15 @@ def train_model(path=DATA_PATH):
         X = df.drop(columns=[target_col])
         X = pd.get_dummies(X, drop_first=True)
         _feature_names = X.columns.tolist()
+
         pipe = Pipeline([
             ('impute', SimpleImputer(strategy='median')),
             ('scale', StandardScaler()),
             ('clf', LogisticRegression(max_iter=1000))
         ])
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
         pipe.fit(X_train, y_train)
         _model = pipe
         _trained = True
@@ -158,7 +160,7 @@ def index():
     return render_template_string(PAGE_PHONE)
 
 @app.route('/send_otp', methods=['POST'])
-def send_otp(): 
+def send_otp():
     phone = request.form.get('phone')
     if not phone:
         flash('Please provide a phone number')
@@ -212,7 +214,9 @@ def predict():
 
     return render_template_string(PAGE_RESULT, phone=phone, amount=amount, verdict=verdict)
 
+# ---------- ENTRY POINT ----------
 if __name__ == '__main__':
     print('Starting app. PIN =', PREDEFINED_OTP)
     load_model()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=debug)
