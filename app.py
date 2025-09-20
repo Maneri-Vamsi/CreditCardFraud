@@ -1,41 +1,77 @@
-from flask import Flask, render_template, jsonify, request
-import os, base64
+from flask import Flask, render_template, request, jsonify
+
 
 app = Flask(__name__)
 
-# Temporary storage (replace with DB in production)
-users = {}
+# 🔹 Fraud detection model (dummy rule for now)
+def predict_fraud(amount: float) -> str:
+    return "fraud" if amount > 50000 else "not fraud"
 
-# Serve home page
-@app.route('/')
+# 🔹 Home page
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-# Generate challenge for registration/login
-@app.route('/challenge', methods=['GET'])
-def challenge():
-    return jsonify({
-        'challenge': base64.b64encode(os.urandom(32)).decode('utf-8')
-    })
+# 🔹 Step 1: Send OTP
+@app.route("/send_otp", methods=["POST"])
+def send_otp():
+    try:
+        data = request.json or {}
+        phone = data.get("phone")
 
-# Save credential after registration
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.json
-    username = data['username']
-    users[username] = data['credential']
-    return jsonify({'status': 'ok'})
+        if not phone:
+            return jsonify({"status": "fail", "message": "Phone number required"}), 400
 
-# Authenticate login
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.json
-    username = data['username']
-    credential = data['credential']
+        client.verify.v2.services(VERIFY_SID).verifications.create(
+            to=phone if phone.startswith("+") else f"+91{phone}",
+            channel="sms"
+        )
+        return jsonify({"status": "ok", "message": "OTP sent successfully"})
+    except Exception as e:
+        return jsonify({"status": "fail", "message": f"Twilio error: {str(e)}"}), 500
 
-    if username in users and users[username] == credential:
-        return jsonify({'status': 'success'})
-    return jsonify({'status': 'fail'})
+# 🔹 Step 2: Verify OTP
+@app.route("/verify_otp", methods=["POST"])
+def verify_otp():
+    try:
+        data = request.json or {}
+        phone = data.get("phone")
+        code = data.get("otp")
 
-if __name__ == '__main__':
+        if not phone or not code:
+            return jsonify({"status": "fail", "message": "Phone and OTP required"}), 400
+
+        verification_check = client.verify.v2.services(VERIFY_SID).verification_checks.create(
+            to=phone if phone.startswith("+") else f"+91{phone}",
+            code=code
+        )
+
+        if verification_check.status == "approved":
+            return jsonify({"status": "ok", "message": "OTP verified"})
+        else:
+            return jsonify({"status": "fail", "message": "Invalid or expired OTP"}), 400
+    except Exception as e:
+        return jsonify({"status": "fail", "message": f"Twilio error: {str(e)}"}), 500
+
+# 🔹 Step 3: Fraud detection (only after OTP verified)
+@app.route("/check_fraud", methods=["POST"])
+def check_fraud():
+    try:
+        data = request.json or {}
+        amount = data.get("amount")
+
+        if amount is None:
+            return jsonify({"status": "fail", "message": "Amount required"}), 400
+
+        try:
+            amount = float(amount)
+        except ValueError:
+            return jsonify({"status": "fail", "message": "Invalid amount"}), 400
+
+        result = predict_fraud(amount)
+        return jsonify({"status": "ok", "prediction": result})
+    except Exception as e:
+        return jsonify({"status": "fail", "message": str(e)}), 500
+
+if __name__ == "__main__":
     app.run(debug=True)
