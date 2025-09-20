@@ -158,7 +158,7 @@ def index():
     return render_template_string(PAGE_PHONE)
 
 @app.route('/send_otp', methods=['POST'])
-def send_otp():
+def send_otp(): 
     phone = request.form.get('phone')
     if not phone:
         flash('Please provide a phone number')
