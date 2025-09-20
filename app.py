@@ -12,13 +12,14 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET', 'dev_secret_key')
 
 # Config
-PREDEFINED_OTP = os.environ.get('PREDEFINED_OTP', '336333')  # <-- updated OTP
+PREDEFINED_OTP = os.environ.get('PREDEFINED_OTP', '336333')  # still same variable, now treated as PIN
 DATA_PATH = os.environ.get('DATA_PATH', '/mnt/data/synthetic_fraud_dataset_balanced.csv')
 FALLBACK_AMOUNT_THRESHOLD = float(os.environ.get('FALLBACK_AMOUNT_THRESHOLD', '10000'))
 
 # ---------- CSS ----------
 STYLE = """
 <style>
+/* same CSS */
 body, html {
     margin: 0;
     padding: 0;
@@ -26,11 +27,7 @@ body, html {
     background: linear-gradient(135deg, #667eea, #764ba2);
     height: 100%;
 }
-.wrapper {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+.wrapper { display: flex; flex-direction: column; min-height: 100vh; }
 .container {
   background: linear-gradient(135deg, #c7d2fe, #e0e7ff);
   padding: 30px;
@@ -39,66 +36,25 @@ body, html {
   max-width: 400px;
   margin: auto;
 }
-h1 {
-    font-size: 30px;
-    font-weight: 700;
-    margin-bottom: 30px;
-    color: #333;
-    text-align: center;
-}
-.input-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 700;
-    color: #555;
-}
+h1 { font-size: 30px; font-weight: 700; margin-bottom: 30px; color: #333; text-align: center; }
+.input-group { margin-bottom: 20px; text-align: left; }
+label { display: block; margin-bottom: 5px; font-weight: 700; color: #555; }
 input {
-    width: 100%;
-    padding: 12px 15px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    outline: none;
+    width: 100%; padding: 12px 15px; border-radius: 10px;
+    border: 1px solid #ccc; font-size: 16px; outline: none;
     transition: all 0.3s;
 }
-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 10px rgba(102,126,234,0.3);
-}
+input:focus { border-color: #667eea; box-shadow: 0 0 10px rgba(102,126,234,0.3); }
 button {
-    width: 100%;
-    padding: 15px;
-    background: #667eea;
-    color: #fff;
-    font-size: 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
+    width: 100%; padding: 15px; background: #667eea; color: #fff;
+    font-size: 18px; font-weight: bold; border: none; border-radius: 10px;
+    cursor: pointer; transition: all 0.3s;
 }
-button:hover {
-    background: #5a67d8;
-    transform: scale(1.05);
-}
-.result {
-    margin-top: 25px;
-    font-size: 22px;
-    font-weight: bold;
-    color: #222;
-    text-align: center;
-}
+button:hover { background: #5a67d8; transform: scale(1.05); }
+.result { margin-top: 25px; font-size: 22px; font-weight: bold; color: #222; text-align: center; }
 footer {
-  color: #0f0317;
-  text-align: center;
-  padding: 20px 0;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  color: #0f0317; text-align: center; padding: 20px 0;
+  font-size: 18px; font-weight: 600; letter-spacing: 0.5px;
 }
 </style>
 """
@@ -112,21 +68,21 @@ PAGE_PHONE = STYLE + """
       <label>Phone number:</label>
       <input name="phone" required placeholder="e.g. +919876543210">
     </div>
-    <button type="submit">Send OTP</button>
+    <button type="submit">Next</button>
   </form>
 </div></div>
 """
 
 PAGE_OTP = STYLE + """
 <div class="wrapper"><div class="container">
-  <h1>Step 2 — Enter OTP</h1>
+  <h1>Step 2 — Enter PIN</h1>
   <form method="post" action="{{ url_for('verify_otp') }}">
     <input type="hidden" name="phone" value="{{ phone }}">
     <div class="input-group">
-      <label>OTP:</label>
-      <input name="otp" required placeholder="Enter OTP">
+      <label>PIN:</label>
+      <input name="otp" required type="password" placeholder="Enter PIN">
     </div>
-    <button type="submit">Verify OTP</button>
+    <button type="submit">Verify PIN</button>
   </form>
 </div></div>
 """
@@ -155,7 +111,7 @@ PAGE_RESULT = STYLE + """
 </div></div>
 """
 
-# ========== MODEL TRAINING ==========
+# ---------- MODEL TRAINING ----------
 _model = None
 _feature_names = []
 _trained = False
@@ -219,13 +175,13 @@ def verify_otp():
         session['phone'] = phone
         return render_template_string(PAGE_AMOUNT, phone=phone)
     else:
-        flash('Incorrect OTP. Try again.')
+        flash('Incorrect PIN. Try again.')
         return render_template_string(PAGE_OTP, phone=phone)
 
 @app.route('/predict', methods=['POST'])
 def predict():
     if not session.get('verified'):
-        flash('You must verify OTP first.')
+        flash('You must verify PIN first.')
         return redirect(url_for('index'))
     phone = session.get('phone')
     amount_raw = request.form.get('amount')
@@ -257,6 +213,6 @@ def predict():
     return render_template_string(PAGE_RESULT, phone=phone, amount=amount, verdict=verdict)
 
 if __name__ == '__main__':
-    print('Starting app. OTP =', PREDEFINED_OTP)
+    print('Starting app. PIN =', PREDEFINED_OTP)
     load_model()
     app.run(host='0.0.0.0', port=5000, debug=True)
