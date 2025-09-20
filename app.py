@@ -69,6 +69,7 @@ PAGE_PHONE = STYLE + """
     </div>
     <button type="submit">Next</button>
   </form>
+  <footer>Developed by <b>G.Jahnavi, P.Varshitha</b></footer>
 </div></div>
 """
 
@@ -83,6 +84,7 @@ PAGE_OTP = STYLE + """
     </div>
     <button type="submit">Verify PIN</button>
   </form>
+  <footer>Developed by <b>G.Jahnavi, P.Varshitha</b></footer>
 </div></div>
 """
 
@@ -97,6 +99,7 @@ PAGE_AMOUNT = STYLE + """
     </div>
     <button type="submit">Predict Fraud</button>
   </form>
+  <footer>Developed by <b>G.Jahnavi, P.Varshitha</b></footer>
 </div></div>
 """
 
@@ -106,7 +109,10 @@ PAGE_RESULT = STYLE + """
   <p style="text-align:center;">Phone: {{ phone }}</p>
   <p style="text-align:center;">Amount: {{ amount }}</p>
   <div class="result">Prediction: {{ verdict }}</div>
-  <footer><a href="{{ url_for('index') }}">Start Over</a></footer>
+  <footer>
+    Developed by <b>G.Jahnavi, P.Varshitha</b><br>
+    <a href="{{ url_for('index') }}">Start Over</a>
+  </footer>
 </div></div>
 """
 
